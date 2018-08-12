@@ -32,6 +32,12 @@ func (v *{{.StructName}}) IsNil() bool { return v == nil }
 	"arr": &genTpl{
 		strTpl: "\tenc.ArrayKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
 	},
+	"time": &genTpl{
+		strTpl: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", &v.{{.Field}}, {{.Format}})\n",
+	},
+	"timePtr": &genTpl{
+		strTpl: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}}, {{.Format}})\n",
+	},
 	"any": &genTpl{
 		strTpl: "\tenc.AnyKey(\"{{.Key}}\", v.{{.Field}})\n",
 	},

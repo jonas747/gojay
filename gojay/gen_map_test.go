@@ -564,6 +564,7 @@ func (v BoolMap) IsNil() bool { return v == nil || len(v) == 0 }
 //gojay:json
 type BoolMap map[string]*Test
 
+//gojay:json
 type Test struct{}
 `),
 			expectedResult: `package  
@@ -592,6 +593,22 @@ func (v BoolMap) MarshalJSONObject(enc *gojay.Encoder) {
 
 // IsNil returns wether the structure is nil value or not
 func (v BoolMap) IsNil() bool { return v == nil || len(v) == 0 }
+
+// UnmarshalJSONObject implements gojay's UnmarshalerJSONObject
+func (v *Test) UnmarshalJSONObject(dec *gojay.Decoder, k string) error {
+	return nil
+}
+
+// NKeys returns the number of keys to unmarshal
+func (v *Test) NKeys() int { return 0 }
+
+// MarshalJSONObject implements gojay's MarshalerJSONObject
+func (v *Test) MarshalJSONObject(enc *gojay.Encoder) {
+
+}
+
+// IsNil returns wether the structure is nil value or not
+func (v *Test) IsNil() bool { return v == nil }
 `,
 		},
 	}

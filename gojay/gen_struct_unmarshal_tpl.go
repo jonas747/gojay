@@ -59,6 +59,17 @@ func (v *{{.StructName}}) NKeys() int { return {{.NKeys}} }
 		return dec.Array(v.{{.Field}})
 `,
 	},
+	"time": &genTpl{
+		strTpl: `		return dec.Time(&v.{{.Field}}, {{.Format}})
+`,
+	},
+	"timePtr": &genTpl{
+		strTpl: `		if v.{{.Field}} == nil {
+			v.{{.Field}} = &time.Time{}
+		}
+		return dec.Time(v.{{.Field}}, {{.Format}})
+`,
+	},
 	"any": &genTpl{
 		strTpl: "\t\treturn dec.Any(&v.{{.Field}})\n",
 	},

@@ -18,6 +18,34 @@ func (g *Gen) mapGenNKeys(n string, count int) error {
 	return err
 }
 
+func (g *Gen) mapGetType(mapV *ast.MapType) (string, bool, error) {
+	// check if has hide tag
+	switch t := mapV.Value.(type) {
+	case *ast.Ident:
+		return t.String(), false, nil
+	case *ast.StarExpr:
+		switch ptrExp := t.X.(type) {
+		case *ast.Ident:
+			return ptrExp.String(), true, nil
+		case *ast.SelectorExpr:
+			pkgName, err := g.getNameFromAstExpr(ptrExp.X)
+			if err != nil {
+				return "", false, err
+			}
+			return formatType(ptrExp.Sel.String(), pkgName), true, nil
+		default:
+			return "", false, fmt.Errorf("Unknown type %T", ptrExp)
+		}
+	case *ast.SelectorExpr:
+		pkgName, err := g.getNameFromAstExpr(t.X)
+		if err != nil {
+			return "", false, err
+		}
+		return formatType(t.Sel.String(), pkgName), false, nil
+	}
+	return "", false, ErrUnknownType
+}
+
 func (g *Gen) mapGenUnmarshalObj(n string, s *ast.MapType) error {
 	err := mapUnmarshalTpl["def"].tpl.Execute(g.b, struct {
 		TypeName string
@@ -27,24 +55,13 @@ func (g *Gen) mapGenUnmarshalObj(n string, s *ast.MapType) error {
 	if err != nil {
 		return err
 	}
-	switch t := s.Value.(type) {
-	case *ast.Ident:
-		var err error
-		err = g.mapGenUnmarshalIdent(t, false)
-		if err != nil {
-			return err
-		}
-	case *ast.StarExpr:
-		switch ptrExp := t.X.(type) {
-		case *ast.Ident:
-			var err error
-			err = g.mapGenUnmarshalIdent(ptrExp, true)
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("Unknown type %s", n)
-		}
+	typeName, ptr, err := g.mapGetType(s)
+	if err != nil {
+		return err
+	}
+	err = g.mapGenUnmarshalIdent(typeName, ptr)
+	if err != nil {
+		return err
 	}
 	_, err = g.b.Write(structUnmarshalClose)
 	if err != nil {
@@ -53,8 +70,8 @@ func (g *Gen) mapGenUnmarshalObj(n string, s *ast.MapType) error {
 	return nil
 }
 
-func (g *Gen) mapGenUnmarshalIdent(i *ast.Ident, ptr bool) error {
-	switch i.String() {
+func (g *Gen) mapGenUnmarshalIdent(typeName string, ptr bool) error {
+	switch typeName {
 	case "string":
 		g.mapUnmarshalString(ptr)
 	case "bool":
@@ -83,24 +100,13 @@ func (g *Gen) mapGenUnmarshalIdent(i *ast.Ident, ptr bool) error {
 		g.mapUnmarshalFloat("32", ptr)
 	default:
 		// if ident is already in our spec list
-		if sp, ok := g.genTypes[i.Name]; ok {
+		if sp, ok := g.genTypes[typeName]; ok {
 			err := g.mapUnmarshalNonPrim(sp, ptr)
 			if err != nil {
 				return err
 			}
-		} else if i.Obj != nil {
-			// else check the obj infos
-			switch t := i.Obj.Decl.(type) {
-			case *ast.TypeSpec:
-				err := g.mapUnmarshalNonPrim(t, ptr)
-				if err != nil {
-					return err
-				}
-			default:
-				return errors.New("could not determine what to do with type " + i.String())
-			}
 		} else {
-			return fmt.Errorf("Unknown type %s", i.Name)
+			return fmt.Errorf("Unknown type %s", typeName)
 		}
 	}
 	return nil

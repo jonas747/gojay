@@ -56,6 +56,46 @@ var arrMarshalTpl = templateList{
 			"\t\tenc.Array(s)\n" +
 			"\t}\n",
 	},
+	"sqlNullString": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullString(&s)\n" +
+			"\t}\n",
+	},
+	"sqlNullStringPtr": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullString(s)\n" +
+			"\t}\n",
+	},
+	"sqlNullInt64": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullInt64(&s)\n" +
+			"\t}\n",
+	},
+	"sqlNullInt64Ptr": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullInt64(s)\n" +
+			"\t}\n",
+	},
+	"sqlNullFloat64": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullFloat64(&s)\n" +
+			"\t}\n",
+	},
+	"sqlNullFloat64Ptr": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullFloat64(s)\n" +
+			"\t}\n",
+	},
+	"sqlNullBool": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullBool(&s)\n" +
+			"\t}\n",
+	},
+	"sqlNullBoolPtr": &genTpl{
+		strTpl: "\tfor _, s := range *v {\n" +
+			"\t\tenc.SQLNullBool(s)\n" +
+			"\t}\n",
+	},
 }
 
 func init() {

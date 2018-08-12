@@ -75,6 +75,22 @@ func (v {{.StructName}}) NKeys() int { return {{.NKeys}} }
 		v[k] = s
 `,
 	},
+	"time": &genTpl{
+		strTpl: `	var s = time.Time{}
+		if err := dec.Time(&s, {{.Format}}); err != nil {
+			return err
+		}
+		v[k] = s
+`,
+	},
+	"timePtr": &genTpl{
+		strTpl: `	var s = &time.Time{}
+		if err := dec.Time(s, {{.Format}}); err != nil {
+			return err
+		}
+		v[k] = s
+`,
+	},
 }
 
 func init() {

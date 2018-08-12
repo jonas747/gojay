@@ -44,12 +44,22 @@ func hasTagMarshalHide(tags *ast.BasicLit) bool {
 }
 
 func hasTagOmitEmpty(tags *ast.BasicLit) bool {
-	v, err := getGojayTagValue(tags)
-	if err != nil {
-		log.Print(err)
-		return false
+	if tags != nil {
+		v, err := getGojayTagValue(tags)
+		if err != nil {
+			log.Print(err)
+			return false
+		}
+		return v.Name == omitEmptyTag || v.HasOption(omitEmptyTag)
 	}
-	return v.Name == omitEmptyTag || v.HasOption(omitEmptyTag)
+	return false
+}
+
+func getOmitEmpty(field *ast.Field) string {
+	if hasTagOmitEmpty(field.Tag) {
+		return "OmitEmpty"
+	}
+	return ""
 }
 
 func tagKeyName(tags *ast.BasicLit) string {
@@ -60,6 +70,24 @@ func tagKeyName(tags *ast.BasicLit) string {
 	}
 	if v.Name == hideTag || v.Name == unmarshalHideTag || v.Name == marshalHideTag {
 		return ""
+	}
+	return v.Name
+}
+
+const defaultTimeFormat = "time.RFC3339"
+const fmtTag = "fmt"
+
+func timeFormat(tags *ast.BasicLit) string {
+	if tags == nil {
+		return defaultTimeFormat
+	}
+	t, err := structtag.Parse(tags.Value[1 : len(tags.Value)-1])
+	if err != nil {
+		return defaultTimeFormat
+	}
+	v, err := t.Get(fmtTag)
+	if err != nil {
+		return defaultTimeFormat
 	}
 	return v.Name
 }

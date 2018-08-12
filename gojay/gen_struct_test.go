@@ -67,14 +67,12 @@ func (v *Struct) UnmarshalJSONObject(dec *gojay.Decoder, k string) error {
 		return dec.String(&v.Str)
 	case "bool":
 		return dec.Bool(&v.Bool)
-	case "unknown":
-		return dec.Any(&v.Unknown)
 	}
 	return nil
 }
 
 // NKeys returns the number of keys to unmarshal
-func (v *Struct) NKeys() int { return 14 }
+func (v *Struct) NKeys() int { return 13 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v *Struct) MarshalJSONObject(enc *gojay.Encoder) {
@@ -91,7 +89,6 @@ func (v *Struct) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.Float32Key("float32", v.Float32)
 	enc.StringKey("str", v.Str)
 	enc.BoolKey("bool", v.Bool)
-	enc.AnyKey("unknown", v.Unknown)
 }
 
 // IsNil returns wether the structure is nil value or not
@@ -323,7 +320,7 @@ func (v *Struct) UnmarshalJSONObject(dec *gojay.Decoder, k string) error {
 		if v.Struct == nil {
 			v.Struct = Struct{}
 		}
-		return dec.Object(v.Struct)
+		return dec.Object(&v.Struct)
 	}
 	return nil
 }
@@ -333,7 +330,7 @@ func (v *Struct) NKeys() int { return 1 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v *Struct) MarshalJSONObject(enc *gojay.Encoder) {
-	enc.ObjectKey("someStruct", v.Struct)
+	enc.ObjectKey("someStruct", &v.Struct)
 }
 
 // IsNil returns wether the structure is nil value or not
@@ -423,6 +420,72 @@ func (v *Struct) IsNil() bool { return v == nil }
 			if err != nil {
 				t.Fatal(err)
 			}
+			assert.Equal(
+				t,
+				string(genHeader)+testCase.expectedResult,
+				g.b.String(),
+			)
+		})
+	}
+}
+
+func TestGenStructTime(t *testing.T) {
+	testCases := map[string]struct {
+		input          io.Reader
+		expectedResult string
+	}{
+		"basicStruct": {
+			input: strings.NewReader(`package test
+
+//gojay:json
+type Struct struct{
+	Time1 time.Time
+	Time2 *time.Time
+}
+			`),
+			expectedResult: `package  
+
+import "github.com/francoispqt/gojay"
+
+// UnmarshalJSONObject implements gojay's UnmarshalerJSONObject
+func (v *Struct) UnmarshalJSONObject(dec *gojay.Decoder, k string) error {
+	switch k {
+	case "time1":
+		return dec.Time(&v.Time1, time.RFC3339)
+	case "time2":
+		if v.Time2 == nil {
+			v.Time2 = &time.Time{}
+		}
+		return dec.Time(v.Time2, time.RFC3339)
+	}
+	return nil
+}
+
+// NKeys returns the number of keys to unmarshal
+func (v *Struct) NKeys() int { return 2 }
+
+// MarshalJSONObject implements gojay's MarshalerJSONObject
+func (v *Struct) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.TimeKey("time1", &v.Time1, time.RFC3339)
+	enc.TimeKey("time2", v.Time2, time.RFC3339)
+}
+
+// IsNil returns wether the structure is nil value or not
+func (v *Struct) IsNil() bool { return v == nil }
+`,
+		},
+	}
+	for n, testCase := range testCases {
+		t.Run(n, func(t *testing.T) {
+			g, err := MakeGenFromReader(testCase.input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = g.Gen()
+			if err != nil {
+				t.Fatal(err)
+			}
+			println(g.b.String())
 			assert.Equal(
 				t,
 				string(genHeader)+testCase.expectedResult,
