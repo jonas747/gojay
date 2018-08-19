@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"go/ast"
 	"log"
 )
@@ -25,24 +23,13 @@ func (g *Gen) mapGenMarshalObj(n string, s *ast.MapType) error {
 	if err != nil {
 		return err
 	}
-	switch t := s.Value.(type) {
-	case *ast.Ident:
-		var err error
-		err = g.mapGenMarshalIdent(t, false)
-		if err != nil {
-			return err
-		}
-	case *ast.StarExpr:
-		switch ptrExp := t.X.(type) {
-		case *ast.Ident:
-			var err error
-			err = g.mapGenMarshalIdent(ptrExp, true)
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("Unknown type %s", n)
-		}
+	typeName, err := g.mapGetType(s)
+	if err != nil {
+		return err
+	}
+	err = g.mapGenMarshalIdent(typeName)
+	if err != nil {
+		return err
 	}
 	_, err = g.b.Write([]byte("}\n"))
 	if err != nil {
@@ -51,47 +38,36 @@ func (g *Gen) mapGenMarshalObj(n string, s *ast.MapType) error {
 	return nil
 }
 
-func (g *Gen) mapGenMarshalIdent(i *ast.Ident, ptr bool) error {
-	switch i.String() {
-	case "string":
-		g.mapMarshalString(ptr)
-	case "bool":
-		g.mapMarshalBool(ptr)
-	case "int":
-		g.mapMarshalInt("", ptr)
-	case "int64":
-		g.mapMarshalInt("64", ptr)
-	case "int32":
-		g.mapMarshalInt("32", ptr)
-	case "int16":
-		g.mapMarshalInt("16", ptr)
-	case "int8":
-		g.mapMarshalInt("8", ptr)
-	case "uint64":
-		g.mapMarshalUint("64", ptr)
-	case "uint32":
-		g.mapMarshalUint("32", ptr)
-	case "uint16":
-		g.mapMarshalUint("16", ptr)
-	case "uint8":
-		g.mapMarshalUint("8", ptr)
-	case "float64":
-		g.mapMarshalFloat("64", ptr)
-	case "float32":
-		g.mapMarshalFloat("32", ptr)
-	default:
-		// if ident is already in our spec list
-		if sp, ok := g.genTypes[i.Name]; ok {
-			g.mapMarshalNonPrim(sp, ptr)
-		} else if i.Obj != nil {
-			switch t := i.Obj.Decl.(type) {
-			case *ast.TypeSpec:
-				g.mapMarshalNonPrim(t, ptr)
-			default:
-				return errors.New("could not determine what to do with type " + i.String())
-			}
-		} else {
-			return fmt.Errorf("Unknown type %s", i.Name)
+func (g *Gen) mapGenMarshalIdent(typeName string) error {
+	t := typeName
+	if t[0] == '*' {
+		t = t[1:]
+	}
+	if v, ok := genTypes[typeName]; ok {
+		var err = v.mapTpl.marshalTpl.Execute(
+			g.b,
+			struct {
+				TypeName string
+			}{t},
+		)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	var structType = "struct"
+	if typeName[0] == '*' {
+		structType = "*" + structType
+	}
+	if _, ok := g.genTypes[t]; ok {
+		var err = genTypes[structType].mapTpl.marshalTpl.Execute(
+			g.b,
+			struct {
+				TypeName string
+			}{t},
+		)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

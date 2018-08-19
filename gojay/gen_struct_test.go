@@ -434,7 +434,7 @@ func TestGenStructTime(t *testing.T) {
 		input          io.Reader
 		expectedResult string
 	}{
-		"basicStruct": {
+		"time and time pointer": {
 			input: strings.NewReader(`package test
 
 //gojay:json

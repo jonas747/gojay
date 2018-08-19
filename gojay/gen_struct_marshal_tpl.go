@@ -11,36 +11,6 @@ var structMarshalTpl = templateList{
 func (v *{{.StructName}}) IsNil() bool { return v == nil }
 `,
 	},
-	"string": &genTpl{
-		strTpl: "\tenc.StringKey{{.OmitEmpty}}(\"{{.Key}}\", {{.Ptr}}v.{{.Field}})\n",
-	},
-	"int": &genTpl{
-		strTpl: "\tenc.Int{{.IntLen}}Key{{.OmitEmpty}}(\"{{.Key}}\", {{.Ptr}}v.{{.Field}})\n",
-	},
-	"uint": &genTpl{
-		strTpl: "\tenc.Uint{{.IntLen}}Key{{.OmitEmpty}}(\"{{.Key}}\", {{.Ptr}}v.{{.Field}})\n",
-	},
-	"float": &genTpl{
-		strTpl: "\tenc.Float{{.IntLen}}Key{{.OmitEmpty}}(\"{{.Key}}\", {{.Ptr}}v.{{.Field}})\n",
-	},
-	"bool": &genTpl{
-		strTpl: "\tenc.BoolKey{{.OmitEmpty}}(\"{{.Key}}\", {{.Ptr}}v.{{.Field}})\n",
-	},
-	"struct": &genTpl{
-		strTpl: "\tenc.ObjectKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-	},
-	"arr": &genTpl{
-		strTpl: "\tenc.ArrayKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-	},
-	"time": &genTpl{
-		strTpl: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", &v.{{.Field}}, {{.Format}})\n",
-	},
-	"timePtr": &genTpl{
-		strTpl: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}}, {{.Format}})\n",
-	},
-	"any": &genTpl{
-		strTpl: "\tenc.AnyKey(\"{{.Key}}\", v.{{.Field}})\n",
-	},
 }
 
 func init() {

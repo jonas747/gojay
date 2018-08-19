@@ -107,8 +107,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.IntKey(k, s)
+	for k, i := range v {
+		enc.IntKey(k, i)
 	}
 }
 
@@ -141,8 +141,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.IntKey(k, *s)
+	for k, i := range v {
+		enc.IntKey(k, *i)
 	}
 }
 
@@ -175,8 +175,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Int64Key(k, s)
+	for k, i := range v {
+		enc.Int64Key(k, i)
 	}
 }
 
@@ -209,8 +209,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Int64Key(k, *s)
+	for k, i := range v {
+		enc.Int64Key(k, *i)
 	}
 }
 
@@ -243,8 +243,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Int32Key(k, s)
+	for k, i := range v {
+		enc.Int32Key(k, i)
 	}
 }
 
@@ -277,8 +277,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Int16Key(k, s)
+	for k, i := range v {
+		enc.Int16Key(k, i)
 	}
 }
 
@@ -311,8 +311,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Int8Key(k, s)
+	for k, i := range v {
+		enc.Int8Key(k, i)
 	}
 }
 
@@ -345,8 +345,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Uint64Key(k, s)
+	for k, i := range v {
+		enc.Uint64Key(k, i)
 	}
 }
 
@@ -379,8 +379,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Uint64Key(k, *s)
+	for k, i := range v {
+		enc.Uint64Key(k, *i)
 	}
 }
 
@@ -413,8 +413,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Uint32Key(k, s)
+	for k, i := range v {
+		enc.Uint32Key(k, i)
 	}
 }
 
@@ -447,8 +447,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Uint16Key(k, s)
+	for k, i := range v {
+		enc.Uint16Key(k, i)
 	}
 }
 
@@ -481,8 +481,8 @@ func (v IntMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v IntMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.Uint8Key(k, s)
+	for k, i := range v {
+		enc.Uint8Key(k, i)
 	}
 }
 
@@ -515,8 +515,8 @@ func (v BoolMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v BoolMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.BoolKey(k, s)
+	for k, b := range v {
+		enc.BoolKey(k, b)
 	}
 }
 
@@ -549,8 +549,8 @@ func (v BoolMap) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v BoolMap) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, s := range v {
-		enc.BoolKey(k, *s)
+	for k, b := range v {
+		enc.BoolKey(k, *b)
 	}
 }
 
@@ -604,7 +604,6 @@ func (v *Test) NKeys() int { return 0 }
 
 // MarshalJSONObject implements gojay's MarshalerJSONObject
 func (v *Test) MarshalJSONObject(enc *gojay.Encoder) {
-
 }
 
 // IsNil returns wether the structure is nil value or not
