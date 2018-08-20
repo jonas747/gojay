@@ -129,6 +129,7 @@ func (g *Gen) Gen() error {
 			}
 		// is array
 		case *ast.ArrayType:
+			log.Print(s.Name)
 			err = g.genArray(s.Name.String(), t)
 			if err != nil {
 				return err

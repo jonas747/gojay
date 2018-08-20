@@ -77,11 +77,11 @@ func tagKeyName(tags *ast.BasicLit) string {
 const defaultTimeFormat = "time.RFC3339"
 const fmtTag = "fmt"
 
-func timeFormat(tags *ast.BasicLit) string {
-	if tags == nil {
+func timeFormat(field *ast.Field) string {
+	if field.Tag == nil {
 		return defaultTimeFormat
 	}
-	t, err := structtag.Parse(tags.Value[1 : len(tags.Value)-1])
+	t, err := structtag.Parse(field.Tag.Value[1 : len(field.Tag.Value)-1])
 	if err != nil {
 		return defaultTimeFormat
 	}

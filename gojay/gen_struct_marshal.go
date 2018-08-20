@@ -56,13 +56,14 @@ func (g *Gen) structGenMarshalObj(n string, s *ast.StructType) (int, error) {
 func (g *Gen) structGenMarshalIdent(field *ast.Field, typeName string, keys int, omitEmpty string, ptr bool) (int, error) {
 	var keyV = getStructFieldJSONKey(field)
 	if v, ok := genTypes[typeName]; ok {
-		var s, err = v.structTpl.marshalFunc(g, field, keyV)
-		if err != nil {
-			return 0, err
-		}
-		err = v.structTpl.marshalTpl.Execute(
+		var err = v.structTpl.marshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return 0, err
@@ -91,13 +92,14 @@ func (g *Gen) structMarshalNonPrim(field *ast.Field, keyV string, sp *ast.TypeSp
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.marshalFunc(g, field, keyV, sp.Name.String())
-		if err != nil {
-			return err
-		}
-		err = genTypes[t].structTpl.marshalTpl.Execute(
+		var err = genTypes[t].structTpl.marshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return err
@@ -108,13 +110,14 @@ func (g *Gen) structMarshalNonPrim(field *ast.Field, keyV string, sp *ast.TypeSp
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.marshalFunc(g, field, keyV)
-		if err != nil {
-			return err
-		}
-		err = genTypes[t].structTpl.marshalTpl.Execute(
+		var err = genTypes[t].structTpl.marshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return err
@@ -125,13 +128,14 @@ func (g *Gen) structMarshalNonPrim(field *ast.Field, keyV string, sp *ast.TypeSp
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.marshalFunc(g, field, keyV)
-		if err != nil {
-			return err
-		}
-		err = genTypes[t].structTpl.marshalTpl.Execute(
+		var err = genTypes[t].structTpl.marshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return err

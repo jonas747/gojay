@@ -107,18 +107,18 @@ func (g *Gen) structGenUnmarshalIdent(field *ast.Field, typeName string, keys in
 		if err != nil {
 			return 0, err
 		}
-		s, err := v.structTpl.unmarshalFunc(g, field, keyV)
-		if err != nil {
-			return 0, err
-		}
 		err = v.structTpl.unmarshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return 0, err
 		}
-
 		keys++
 	} else {
 		t := typeName
@@ -149,13 +149,18 @@ func (g *Gen) structUnmarshalNonPrim(field *ast.Field, keyV string, sp *ast.Type
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.unmarshalFunc(g, field, keyV, sp.Name.String())
-		if err != nil {
-			return err
+		if typeName[0] == '*' {
+			typeName = typeName[1:]
 		}
-		err = genTypes[t].structTpl.unmarshalTpl.Execute(
+		var err = genTypes[t].structTpl.unmarshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field      string
+				Key        string
+				OmitEmpty  string
+				Format     string
+				StructName string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field), typeName},
 		)
 		if err != nil {
 			return err
@@ -166,13 +171,14 @@ func (g *Gen) structUnmarshalNonPrim(field *ast.Field, keyV string, sp *ast.Type
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.unmarshalFunc(g, field, keyV, sp.Name)
-		if err != nil {
-			return err
-		}
-		err = genTypes[t].structTpl.unmarshalTpl.Execute(
+		var err = genTypes[t].structTpl.unmarshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return err
@@ -183,13 +189,14 @@ func (g *Gen) structUnmarshalNonPrim(field *ast.Field, keyV string, sp *ast.Type
 		if typeName[0] == '*' {
 			t = "*" + t
 		}
-		var s, err = genTypes[t].structTpl.unmarshalFunc(g, field, keyV, sp.Name)
-		if err != nil {
-			return err
-		}
-		err = genTypes[t].structTpl.unmarshalTpl.Execute(
+		var err = genTypes[t].structTpl.unmarshalTpl.Execute(
 			g.b,
-			s,
+			struct {
+				Field     string
+				Key       string
+				OmitEmpty string
+				Format    string
+			}{field.Names[0].Name, keyV, getOmitEmpty(field), timeFormat(field)},
 		)
 		if err != nil {
 			return err

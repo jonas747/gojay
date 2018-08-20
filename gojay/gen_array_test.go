@@ -68,8 +68,8 @@ func (v *BoolSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *BoolSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Bool(s)
+	for _, b := range *v {
+		enc.Bool(b)
 	}
 }
 
@@ -101,8 +101,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Int(s)
+	for _, i := range *v {
+		enc.Int(i)
 	}
 }
 
@@ -134,8 +134,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Int8(s)
+	for _, i := range *v {
+		enc.Int8(i)
 	}
 }
 
@@ -167,8 +167,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Int16(s)
+	for _, i := range *v {
+		enc.Int16(i)
 	}
 }
 
@@ -200,8 +200,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Int32(s)
+	for _, i := range *v {
+		enc.Int32(i)
 	}
 }
 
@@ -233,8 +233,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Int64(s)
+	for _, i := range *v {
+		enc.Int64(i)
 	}
 }
 
@@ -266,8 +266,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Uint64(s)
+	for _, i := range *v {
+		enc.Uint64(i)
 	}
 }
 
@@ -299,8 +299,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Float64(s)
+	for _, i := range *v {
+		enc.Float64(i)
 	}
 }
 
@@ -332,8 +332,8 @@ func (v *IntSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *IntSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Float32(s)
+	for _, i := range *v {
+		enc.Float32(i)
 	}
 }
 
@@ -404,8 +404,8 @@ func (v *SliceStrSlice) UnmarshalJSONArray(dec *gojay.Decoder) error {
 
 // MarshalJSONArray implements gojay's MarshalerJSONArray
 func (v *SliceStrSlice) MarshalJSONArray(enc *gojay.Encoder) {
-	for _, s := range *v {
-		enc.Array(s)
+	for _, i := range *v {
+		enc.Array(i)
 	}
 }
 

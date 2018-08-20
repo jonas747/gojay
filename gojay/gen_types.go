@@ -1,18 +1,15 @@
 package main
 
 import (
-	"go/ast"
 	"log"
 	"text/template"
 )
 
 type StructTpl struct {
-	marshalStr    string
-	marshalTpl    *template.Template
-	unmarshalStr  string
-	unmarshalTpl  *template.Template
-	marshalFunc   func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error)
-	unmarshalFunc func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error)
+	marshalStr   string
+	marshalTpl   *template.Template
+	unmarshalStr string
+	unmarshalTpl *template.Template
 }
 
 type MapTpl struct {
@@ -52,18 +49,6 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.String(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.StringKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
 		arrTpl: &ArrTpl{
 			unmarshalStr: "\tvar str string" +
@@ -90,18 +75,6 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.String(v.{{.Field}})\n",
 			marshalStr:   "\tenc.StringKey{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
 		arrTpl: &ArrTpl{
 			unmarshalStr: "\tvar str string" +
@@ -109,7 +82,7 @@ var genTypes = map[string]T{
 				"\t\treturn err\n\t}\n" +
 				"\t*v = append(*v, &str)\n",
 			marshalStr: "\tfor _, s := range *v {\n" +
-				"\t\tenc.String(s)\n" +
+				"\t\tenc.String(*s)\n" +
 				"\t}\n",
 		},
 	},
@@ -129,20 +102,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.IntKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int" +
+				"\n\tif err := dec.Int(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*int": {
 		mapTpl: &MapTpl{
@@ -159,20 +128,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int(v.{{.Field}})\n",
 			marshalStr:   "\tenc.IntKey{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int" +
+				"\n\tif err := dec.Int(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"int64": {
 		mapTpl: &MapTpl{
@@ -189,20 +154,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int64(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int64Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int64" +
+				"\n\tif err := dec.Int64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int64(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*int64": {
 		mapTpl: &MapTpl{
@@ -219,20 +180,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int64(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int64Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int64" +
+				"\n\tif err := dec.Int64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int64(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"int32": {
 		mapTpl: &MapTpl{
@@ -249,20 +206,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int32(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int32Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int32" +
+				"\n\tif err := dec.Int32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int32(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*int32": {
 		mapTpl: &MapTpl{
@@ -279,20 +232,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int32(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int32Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int32" +
+				"\n\tif err := dec.Int32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int32(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"int16": {
 		mapTpl: &MapTpl{
@@ -309,20 +258,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int16(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int16Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int16" +
+				"\n\tif err := dec.Int16(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int16(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*int16": {
 		mapTpl: &MapTpl{
@@ -339,20 +284,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int16(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int16Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int16" +
+				"\n\tif err := dec.Int16(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int16(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"int8": {
 		mapTpl: &MapTpl{
@@ -369,20 +310,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int8(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int8Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int8" +
+				"\n\tif err := dec.Int8(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int8(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*int8": {
 		mapTpl: &MapTpl{
@@ -399,20 +336,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Int8(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Int8Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i int8" +
+				"\n\tif err := dec.Int8(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Int8(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"uint64": {
 		mapTpl: &MapTpl{
@@ -429,20 +362,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint64(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint64Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint64" +
+				"\n\tif err := dec.Uint64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint64(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*uint64": {
 		mapTpl: &MapTpl{
@@ -459,20 +388,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint64(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint64Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint64" +
+				"\n\tif err := dec.Uint64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint64(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"uint32": {
 		mapTpl: &MapTpl{
@@ -489,20 +414,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint32(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint32Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint32" +
+				"\n\tif err := dec.Uint32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint32(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*uint32": {
 		mapTpl: &MapTpl{
@@ -519,20 +440,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint32(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint32Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint32" +
+				"\n\tif err := dec.Uint32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint32(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"uint16": {
 		mapTpl: &MapTpl{
@@ -549,20 +466,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint16(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint16Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint16" +
+				"\n\tif err := dec.Uint16(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint16(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*uint16": {
 		mapTpl: &MapTpl{
@@ -579,20 +492,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint16(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint16Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint16" +
+				"\n\tif err := dec.Uint16(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint16(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"uint8": {
 		mapTpl: &MapTpl{
@@ -609,20 +518,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint8(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint8Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint8" +
+				"\n\tif err := dec.Uint8(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint8(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*uint8": {
 		mapTpl: &MapTpl{
@@ -639,20 +544,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Uint8(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Uint8Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i uint8" +
+				"\n\tif err := dec.Uint8(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Uint8(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"float64": {
 		mapTpl: &MapTpl{
@@ -669,20 +570,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Float64(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Float64Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i float64" +
+				"\n\tif err := dec.Float64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Float64(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*float64": {
 		mapTpl: &MapTpl{
@@ -699,20 +596,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Float(v.{{.Field}})\n",
 			marshalStr:   "\tenc.FloatKey{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i float64" +
+				"\n\tif err := dec.Float64(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Float64(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"float32": {
 		mapTpl: &MapTpl{
@@ -729,20 +622,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Float32(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.Float32Key{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i float32" +
+				"\n\tif err := dec.Float32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Float32(i)\n" +
+				"\t}\n",
+		},
 	},
 	"*float32": {
 		mapTpl: &MapTpl{
@@ -759,20 +648,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Float32(v.{{.Field}})\n",
 			marshalStr:   "\tenc.Float32Key{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar i float32" +
+				"\n\tif err := dec.Float32(&i); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &i)\n",
+			marshalStr: "\tfor _, i := range *v {\n" +
+				"\t\tenc.Float32(*i)\n" +
+				"\t}\n",
+		},
 	},
 	"bool": {
 		mapTpl: &MapTpl{
@@ -789,20 +674,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Bool(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.BoolKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar b bool" +
+				"\n\tif err := dec.Bool(&b); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, b)\n",
+			marshalStr: "\tfor _, b := range *v {\n" +
+				"\t\tenc.Bool(b)\n" +
+				"\t}\n",
+		},
 	},
 	"*bool": {
 		mapTpl: &MapTpl{
@@ -819,20 +700,16 @@ var genTypes = map[string]T{
 		structTpl: &StructTpl{
 			unmarshalStr: "\t\treturn dec.Bool(&v.{{.Field}})\n",
 			marshalStr:   "\tenc.BoolKey{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar b bool" +
+				"\n\tif err := dec.Bool(&b); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &b)\n",
+			marshalStr: "\tfor _, b := range *v {\n" +
+				"\t\tenc.Bool(*b)\n" +
+				"\t}\n",
+		},
 	},
 	"arr": {
 		mapTpl: &MapTpl{
@@ -853,21 +730,16 @@ var genTypes = map[string]T{
 		}
 		return dec.Array(&v.{{.Field}})
 `,
-			marshalStr: "\tenc.ArrayKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar s = make({{.TypeName}}, 0)" +
+				"\n\tif err := dec.Array(&s); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, s)\n",
+			marshalStr: "\tfor _, s := range *v {\n" +
+				"\t\tenc.Array(&s)\n" +
+				"\t}\n",
+		},
 	},
 	"*arr": {
 		mapTpl: &MapTpl{
@@ -889,20 +761,16 @@ var genTypes = map[string]T{
 		return dec.Array(v.{{.Field}})
 `,
 			marshalStr: "\tenc.ArrayKey{{.OmitEmpty}}(\"{{.Key}}\", *v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field string
-				}{field.Names[0].Name}, nil
-			},
 		},
-		arrTpl: &ArrTpl{},
+		arrTpl: &ArrTpl{
+			unmarshalStr: "\tvar s = make({{.TypeName}}, 0)" +
+				"\n\tif err := dec.Array(&s); err != nil {\n" +
+				"\t\treturn err\n\t}\n" +
+				"\t*v = append(*v, &s)\n",
+			marshalStr: "\tfor _, s := range *v {\n" +
+				"\t\tenc.Array(s)\n" +
+				"\t}\n",
+		},
 	},
 	"struct": {
 		mapTpl: &MapTpl{
@@ -923,19 +791,6 @@ var genTypes = map[string]T{
 		return dec.Object(&v.{{.Field}})
 `,
 			marshalStr: "\tenc.ObjectKey{{.OmitEmpty}}(\"{{.Key}}\", &v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field      string
-					StructName string
-				}{field.Names[0].Name, args[0].(string)}, nil
-			},
 		},
 		arrTpl: &ArrTpl{},
 	},
@@ -958,19 +813,6 @@ var genTypes = map[string]T{
 		return dec.Object(v.{{.Field}})
 `,
 			marshalStr: "\tenc.ObjectKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-				}{field.Names[0].Name, key, getOmitEmpty(field)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field      string
-					StructName string
-				}{field.Names[0].Name, args[0].(string)}, nil
-			},
 		},
 		arrTpl: &ArrTpl{},
 	},
@@ -990,20 +832,6 @@ var genTypes = map[string]T{
 			unmarshalStr: `		return dec.Time(&v.{{.Field}}, {{.Format}})
 `,
 			marshalStr: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", &v.{{.Field}}, {{.Format}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-					Format    string
-				}{field.Names[0].Name, key, getOmitEmpty(field), timeFormat(field.Tag)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field  string
-					Format string
-				}{field.Names[0].Name, timeFormat(field.Tag)}, nil
-			},
 		},
 		arrTpl: &ArrTpl{},
 	},
@@ -1026,20 +854,6 @@ var genTypes = map[string]T{
 		return dec.Time(v.{{.Field}}, {{.Format}})
 `,
 			marshalStr: "\tenc.TimeKey{{.OmitEmpty}}(\"{{.Key}}\", v.{{.Field}}, {{.Format}})\n",
-			marshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field     string
-					Key       string
-					OmitEmpty string
-					Format    string
-				}{field.Names[0].Name, key, getOmitEmpty(field), timeFormat(field.Tag)}, nil
-			},
-			unmarshalFunc: func(g *Gen, field *ast.Field, key string, args ...interface{}) (interface{}, error) {
-				return struct {
-					Field  string
-					Format string
-				}{field.Names[0].Name, timeFormat(field.Tag)}, nil
-			},
 		},
 		arrTpl: &ArrTpl{},
 	},
