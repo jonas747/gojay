@@ -257,6 +257,15 @@ type Decoder struct {
 	keysDone int
 }
 
+func (dec *Decoder) reset() {
+	dec.called = 0
+	dec.keysDone = 0
+	dec.cursor = 0
+	dec.err = nil
+	dec.length = 0
+	dec.isPooled = 0
+}
+
 // Decode reads the next JSON-encoded value from its input and stores it in the value pointed to by v.
 //
 // See the documentation for Unmarshal for details about the conversion of JSON into a Go value.
@@ -329,10 +338,14 @@ func (dec *Decoder) Decode(v interface{}) error {
 	default:
 		return InvalidUnmarshalError(fmt.Sprintf(invalidUnmarshalErrorMsg, reflect.TypeOf(vt).String()))
 	}
-	if err != nil {
-		return err
+
+	if err == nil {
+		err = dec.err
 	}
-	return dec.err
+
+	dec.reset()
+
+	return err
 }
 
 // ADD VALUES FUNCTIONS
