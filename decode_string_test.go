@@ -702,6 +702,14 @@ func TestDecoderSkipEscapedStringError3(t *testing.T) {
 	assert.IsType(t, InvalidJSONError(""), err, "err must be of type InvalidJSONError")
 }
 
+func TestDecoderSkipEscapedStringError4(t *testing.T) {
+	dec := NewDecoder(strings.NewReader(`\u12`))
+	defer dec.Release()
+	err := dec.skipEscapedString()
+	assert.NotNil(t, err, "Err must be nil")
+	assert.IsType(t, InvalidJSONError(""), err, "err must be of type InvalidJSONError")
+}
+
 func TestDecoderSkipStringError(t *testing.T) {
 	dec := NewDecoder(strings.NewReader(`invalid`))
 	defer dec.Release()
@@ -738,10 +746,15 @@ func TestSkipString(t *testing.T) {
 			expectedResult: "",
 			err:            false,
 		},
+		{
+			name:           "string-unicode",
+			json:           `[2]\u66fe\u5b97\u5357"`,
+			expectedResult: "",
+			err:            false,
+		},
 	}
 
 	for _, testCase := range testCases {
-		str := ""
 		dec := NewDecoder(strings.NewReader(testCase.json))
 		err := dec.skipString()
 		if testCase.err {
@@ -749,9 +762,8 @@ func TestSkipString(t *testing.T) {
 			if testCase.errType != nil {
 				assert.IsType(t, testCase.errType, err, "err should be of expected type")
 			}
-		} else {
-			assert.Nil(t, err, "err should be nil")
+			return
 		}
-		assert.Equal(t, testCase.expectedResult, str, fmt.Sprintf("str should be equal to '%s'", testCase.expectedResult))
+		assert.Nil(t, err, "err should be nil")
 	}
 }
