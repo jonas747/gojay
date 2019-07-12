@@ -248,7 +248,7 @@ type Decoder struct {
 }
 
 // Decode reads the next JSON-encoded value from the decoder's input (io.Reader) and stores it in the value pointed to by v.
-func (dec *Decoder) reset() {
+func (dec *Decoder) Reset() {
 	dec.called = 0
 	dec.keysDone = 0
 	dec.cursor = 0
@@ -335,8 +335,6 @@ func (dec *Decoder) Decode(v interface{}) error {
 	if err == nil {
 		err = dec.err
 	}
-
-	dec.reset()
 
 	return err
 }
