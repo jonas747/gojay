@@ -1,9 +1,5 @@
 package gojay
 
-import (
-	"unsafe"
-)
-
 // DecodeString reads the next JSON-encoded value from the decoder's input (io.Reader) and stores it in the string pointed to by v.
 //
 // See the documentation for Unmarshal for details about the conversion of JSON into a Go value.
@@ -27,7 +23,7 @@ func (dec *Decoder) decodeString(v *string) error {
 			}
 			// we do minus one to remove the last quote
 			d := dec.data[start : end-1]
-			*v = *(*string)(unsafe.Pointer(&d))
+			*v = string(d)
 			dec.cursor = end
 			return nil
 		// is nil
@@ -68,7 +64,7 @@ func (dec *Decoder) decodeStringNull(v **string) error {
 			}
 			// we do minus one to remove the last quote
 			d := dec.data[start : end-1]
-			**v = *(*string)(unsafe.Pointer(&d))
+			**v = string(d)
 			dec.cursor = end
 			return nil
 		// is nil
