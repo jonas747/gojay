@@ -1,6 +1,8 @@
 package gojay
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // DecodeArray reads the next JSON-encoded value from the decoder's input (io.Reader)
 // and stores it in the value pointed to by v.
@@ -33,8 +35,10 @@ func (dec *Decoder) decodeArray(arr UnmarshalerJSONArray) (int, error) {
 				// closing array
 				if dec.data[dec.cursor] == ']' {
 					dec.cursor = dec.cursor + 1
+					dec.called |= 1
 					return dec.cursor, nil
 				}
+
 				// calling unmarshall function for each element of the slice
 				err := arr.UnmarshalJSONArray(dec)
 				if err != nil {
